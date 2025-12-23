@@ -12,9 +12,8 @@ export default function Todo({ searchText }) {
 
   const navigate = useNavigate();
 
-  /* ======================
-     LOAD TODOS
-  ====================== */
+    //  LOAD TODOS
+
   const loadTodos = useCallback(async () => {
     try {
       const { data } = await API.get("/todos");
@@ -32,9 +31,8 @@ export default function Todo({ searchText }) {
     }
   }, [navigate]);
 
-  /* ======================
-     AUTH CHECK
-  ====================== */
+    //  AUTH CHECK
+
   useEffect(() => {
     const token = localStorage.getItem("token");
 
@@ -46,10 +44,9 @@ export default function Todo({ searchText }) {
 
     loadTodos();
   }, [loadTodos, navigate]);
+  
+    //  ADD / UPDATE TODO
 
-  /* ======================
-     ADD / UPDATE TODO
-  ====================== */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -74,9 +71,8 @@ export default function Todo({ searchText }) {
     }
   };
 
-  /* ======================
-     TOGGLE COMPLETE
-  ====================== */
+    //  TOGGLE COMPLETE
+
   const toggleComplete = async (id, completed) => {
     try {
       await API.put(`/todos/${id}`, { completed: !completed });
@@ -86,9 +82,8 @@ export default function Todo({ searchText }) {
     }
   };
 
-  /* ======================
-     DELETE TODO
-  ====================== */
+    //  DELETE TODO
+
   const deleteTodo = async (id) => {
     try {
       await API.delete(`/todos/${id}`);
@@ -99,16 +94,14 @@ export default function Todo({ searchText }) {
     }
   };
 
-  /* ======================
-     FILTER
-  ====================== */
+    //  FILTER
+
   const filteredTodos = todos.filter((todo) =>
     todo.title.toLowerCase().includes(searchText?.toLowerCase() || "")
   );
 
-  /* ======================
-     UI
-  ====================== */
+    //  UI
+
   return (
     <div className="todo-container">
       <div className="row">
