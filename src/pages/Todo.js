@@ -8,13 +8,15 @@ export default function Todo({ searchText }) {
   const [todos, setTodos] = useState([]);
   const [text, setText] = useState("");
   const [editId, setEditId] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+
   const navigate = useNavigate();
- 
-  // Load Todos
+
+  /* ======================
+     LOAD TODOS
+  ====================== */
   const loadTodos = useCallback(async () => {
     try {
-      setLoading(true);
       const { data } = await API.get("/todos");
       setTodos(data);
     } catch (err) {
@@ -29,23 +31,31 @@ export default function Todo({ searchText }) {
       setLoading(false);
     }
   }, [navigate]);
- 
-  // Check login & load todos
+
+  /* ======================
+     AUTH CHECK
+  ====================== */
   useEffect(() => {
     const token = localStorage.getItem("token");
 
     if (!token) {
       toast.warning("Please login first!");
       navigate("/login");
-    } else {
-      loadTodos();
+      return;
     }
+
+    loadTodos();
   }, [loadTodos, navigate]);
- 
-  // Add / Update Todo
+
+  /* ======================
+     ADD / UPDATE TODO
+  ====================== */
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!text.trim()) return toast.warning("Task can't be empty!");
+
+    if (!text.trim()) {
+      return toast.warning("Task can't be empty!");
+    }
 
     try {
       if (editId) {
@@ -55,6 +65,7 @@ export default function Todo({ searchText }) {
         await API.post("/todos", { title: text });
         toast.success("Task added");
       }
+
       setText("");
       setEditId(null);
       loadTodos();
@@ -62,39 +73,48 @@ export default function Todo({ searchText }) {
       toast.error("Action failed!");
     }
   };
- 
-  // Toggle complete
+
+  /* ======================
+     TOGGLE COMPLETE
+  ====================== */
   const toggleComplete = async (id, completed) => {
-    await API.put(`/todos/${id}`, { completed: !completed });
-    loadTodos();
+    try {
+      await API.put(`/todos/${id}`, { completed: !completed });
+      loadTodos();
+    } catch {
+      toast.error("Update failed!");
+    }
   };
- 
-  // Delete todo
+
+  /* ======================
+     DELETE TODO
+  ====================== */
   const deleteTodo = async (id) => {
-    await API.delete(`/todos/${id}`);
-    toast.success("Task deleted");
-    loadTodos();
+    try {
+      await API.delete(`/todos/${id}`);
+      toast.success("Task deleted");
+      loadTodos();
+    } catch {
+      toast.error("Delete failed!");
+    }
   };
- 
-  // Logout
-  // const handleLogout = () => {
-  //   localStorage.removeItem("token");
-  //   toast.info("Logged out");
-  //   navigate("/login");
-  // };
- 
-  // Filter todos
+
+  /* ======================
+     FILTER
+  ====================== */
   const filteredTodos = todos.filter((todo) =>
     todo.title.toLowerCase().includes(searchText?.toLowerCase() || "")
   );
 
+  /* ======================
+     UI
+  ====================== */
   return (
     <div className="todo-container">
       <div className="row">
         <div className="col-md-6">
           <div className="todo-header">
             <h2>My Todo App</h2>
-            {/* <button onClick={handleLogout}>Logout</button> */}
           </div>
 
           <form className="todo-input-box" onSubmit={handleSubmit}>
@@ -124,6 +144,7 @@ export default function Todo({ searchText }) {
                     onChange={() => toggleComplete(t._id, t.completed)}
                   />
                   <span>{t.title}</span>
+
                   <div>
                     <button
                       onClick={() => {
