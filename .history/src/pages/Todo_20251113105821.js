@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import API from "../api";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
@@ -10,9 +10,11 @@ export default function Todo({ searchText }) {
   const [editId, setEditId] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
- 
-  // Load Todos
-  const loadTodos = useCallback(async () => {
+
+  // ----------------------
+  // Load Todos function
+  // ----------------------
+  const loadTodos = async () => {
     try {
       setLoading(true);
       const { data } = await API.get("/todos");
@@ -28,64 +30,88 @@ export default function Todo({ searchText }) {
     } finally {
       setLoading(false);
     }
-  }, [navigate]);
- 
+  };
+
+  // ----------------------
   // Check login & load todos
+  // ----------------------
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    if (!token) {
-      toast.warning("Please login first!");
-      navigate("/login");
-    } else {
-      loadTodos();
-    }
-  }, [loadTodos, navigate]);
- 
-  // Add / Update Todo
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!text.trim()) return toast.warning("Task can't be empty!");
-
-    try {
-      if (editId) {
-        await API.put(`/todos/${editId}`, { title: text });
-        toast.success("Task updated");
+    const checkLogin = async () => {
+      if (!token) {
+        toast.warning("Please login first!");
+        navigate("/login");
       } else {
-        await API.post("/todos", { title: text });
-        toast.success("Task added");
+        await loadTodos();
       }
-      setText("");
-      setEditId(null);
-      loadTodos();
-    } catch {
-      toast.error("Action failed!");
-    }
+    };
+
+    checkLogin();
+  }, []);
+
+  // ----------------------
+  // Add Todo
+  // ----------------------
+  const addTodo = async () => {
+    if (!text.trim()) return toast.warning("Task can't be empty!");
+    await API.post("/todos", { title: text });
+    setText("");
+    toast.success("Task added");
+    loadTodos();
   };
- 
+
+  // ----------------------
+  // Update Todo
+  // ----------------------
+  const updateTodo = async () => {
+    if (!text.trim()) return toast.warning("Task can't be empty!");
+    await API.put(`/todos/${editId}`, { title: text });
+    setEditId(null);
+    setText("");
+    toast.success("Task updated");
+    loadTodos();
+  };
+
+  // ----------------------
   // Toggle complete
+  // ----------------------
   const toggleComplete = async (id, completed) => {
     await API.put(`/todos/${id}`, { completed: !completed });
     loadTodos();
   };
- 
+
+  // ----------------------
   // Delete todo
+  // ----------------------
   const deleteTodo = async (id) => {
     await API.delete(`/todos/${id}`);
     toast.success("Task deleted");
     loadTodos();
   };
- 
+
+  // ----------------------
+  // Form submit
+  // ----------------------
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    editId ? updateTodo() : addTodo();
+  };
+
+  // ----------------------
   // Logout
-  // const handleLogout = () => {
-  //   localStorage.removeItem("token");
-  //   toast.info("Logged out");
-  //   navigate("/login");
-  // };
- 
+  // ----------------------
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    toast.info("Logged out");
+    navigate("/login");
+  };
+
+  // ----------------------
   // Filter todos
+  // ----------------------
   const filteredTodos = todos.filter((todo) =>
-    todo.title.toLowerCase().includes(searchText?.toLowerCase() || "")
+    todo.title.toLowerCase().includes(searchText?.toLowerCase())
   );
 
   return (
@@ -94,9 +120,10 @@ export default function Todo({ searchText }) {
         <div className="col-md-6">
           <div className="todo-header">
             <h2>My Todo App</h2>
-            {/* <button onClick={handleLogout}>Logout</button> */}
+            <button onClick={handleLogout}>Logout</button>
           </div>
 
+          {/* Input box */}
           <form className="todo-input-box" onSubmit={handleSubmit}>
             <input
               value={text}
@@ -108,11 +135,12 @@ export default function Todo({ searchText }) {
           </form>
         </div>
 
+        {/* Todo List */}
         <div className="col-md-6">
           {loading && <p className="loading">Loading...</p>}
 
           <ul className="todo-list">
-            {filteredTodos.length ? (
+            {filteredTodos.length > 0 ? (
               filteredTodos.map((t) => (
                 <li
                   key={t._id}

@@ -16,40 +16,36 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!form.name || !form.email || !form.password) {
-      toast.warning("All fields are required!");
-      return;
-    }
-
-    if (form.password.length < 6) {
-      toast.error("Password must be at least 6 characters");
+      toast.error("All fields are required!");
       return;
     }
 
     try {
       setLoading(true);
+      const response = await API.post("/auth/signup", form);
 
-      await API.post("/auth/signup", form);
-
-      toast.success("Signup successful Please login");
-      navigate("/login");
-
-    } catch (err) {
-      if (err.response?.status === 409) {
-        toast.error("Email already registered ");
-      } 
-      else if (err.response?.status === 400) {
-        toast.error(err.response.data.message);
-      } 
-      else {
-        toast.error("Signup failed. Try again later ");
+      if (response?.data?.token) {
+        localStorage.setItem("token", response.data.token);
+        toast.success("Signup successful!");
+        navigate("/");
+      } else {
+        toast.error("Signup failed. Please try again.");
       }
+    } catch (err) {
+      const message =
+        err?.response?.data?.message ||
+        err?.message ||
+        "An unexpected error occurred";
+      toast.error(message);
+      console.error("Signup error:", err);
     } finally {
       setLoading(false);
     }
@@ -66,6 +62,7 @@ export default function Signup() {
           placeholder="Full Name"
           value={form.name}
           onChange={handleChange}
+          required
         />
 
         <input
@@ -74,6 +71,7 @@ export default function Signup() {
           placeholder="Email"
           value={form.email}
           onChange={handleChange}
+          required
         />
 
         <input
@@ -83,6 +81,7 @@ export default function Signup() {
           value={form.password}
           onChange={handleChange}
           autoComplete="new-password"
+          required
         />
 
         <button type="submit" disabled={loading}>
@@ -96,8 +95,6 @@ export default function Signup() {
           Login
         </span>
       </p>
-
-      <a href="/">Back</a>
     </div>
   );
 }

@@ -1,9 +1,23 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import "./Home.css";
 
 export default function Home() {
   const navigate = useNavigate();
+
+  const handleTodoClick = () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      toast.warning("Please login first");
+      setTimeout(() => {
+        navigate("/login");
+      }, 800);
+    } else {
+      navigate("/todo");
+    }
+  };
 
   return (
     <div className="landing-container">
@@ -15,10 +29,14 @@ export default function Home() {
         </p>
 
         <div className="btn-group">
-          <button onClick={() => navigate("/todo")} className="btn-primary">
+          <button onClick={handleTodoClick} className="btn-primary">
             Goto Add Todos
           </button>
-          <button onClick={() => navigate("/signup")} className="btn-secondary">
+
+          <button
+            onClick={() => navigate("/signup")}
+            className="btn-secondary"
+          >
             Sign Up
           </button>
         </div>

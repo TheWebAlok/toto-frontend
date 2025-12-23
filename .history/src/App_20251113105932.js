@@ -6,9 +6,6 @@ import Signup from "./pages/Signup";
 import { Routes, Route, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
 
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-
 function App() {
   const [searchText, setSearchText] = useState("");
   const location = useLocation();
@@ -17,12 +14,6 @@ function App() {
 
   return (
     <>
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        theme="colored"
-      />
-
       {!hideNavbarRoutes.includes(location.pathname) && (
         <Navbar onSearch={(text) => setSearchText(text)} />
       )}
